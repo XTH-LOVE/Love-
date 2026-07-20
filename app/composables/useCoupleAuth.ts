@@ -119,6 +119,13 @@ export function useCoupleAuth() {
     if (error) throw error
   }
 
+  async function updatePassword(password: string) {
+    if (password.length < 8) throw new Error('新密码至少需要 8 位')
+    if (!$supabase || demoMode.value) return
+    const { error } = await $supabase.auth.updateUser({ password })
+    if (error) throw error
+  }
+
   async function createCouple(displayName: string, relationshipStart: string) {
     loading.value = true
     try {
@@ -160,5 +167,5 @@ export function useCoupleAuth() {
     demoMode.value = false
   }
 
-  return { configured, demoMode, initialized, loading, profile, stage, initialize, signIn, signUp, signInWithAccount, signUpWithAccount, recoverAccount, resendConfirmation, createCouple, joinCouple, signOut }
+  return { configured, demoMode, initialized, loading, profile, stage, initialize, signIn, signUp, signInWithAccount, signUpWithAccount, recoverAccount, resendConfirmation, updatePassword, createCouple, joinCouple, signOut }
 }
