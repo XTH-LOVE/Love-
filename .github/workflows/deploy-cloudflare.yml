@@ -1,0 +1,50 @@
+name: Deploy Love Home to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NUXT_PUBLIC_SUPABASE_URL: ${{ secrets.NUXT_PUBLIC_SUPABASE_URL }}
+      NUXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NUXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NUXT_PUBLIC_TURN_URLS: ${{ secrets.NUXT_PUBLIC_TURN_URLS }}
+      NUXT_PUBLIC_TURN_USERNAME: ${{ secrets.NUXT_PUBLIC_TURN_USERNAME }}
+      NUXT_PUBLIC_TURN_CREDENTIAL: ${{ secrets.NUXT_PUBLIC_TURN_CREDENTIAL }}
+      NUXT_PUBLIC_ZEGO_APP_ID: ${{ secrets.NUXT_PUBLIC_ZEGO_APP_ID }}
+      NUXT_PUBLIC_ZEGO_APPSIGN: ${{ secrets.NUXT_PUBLIC_ZEGO_APPSIGN }}
+      NUXT_PUBLIC_ZEGO_SERVER: ${{ secrets.NUXT_PUBLIC_ZEGO_SERVER }}
+      NUXT_PUBLIC_AMAP_KEY: ${{ secrets.NUXT_PUBLIC_AMAP_KEY }}
+      NUXT_PUBLIC_AMAP_SECURITY_CODE: ${{ secrets.NUXT_PUBLIC_AMAP_SECURITY_CODE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Generate static site
+        run: npm run generate
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .output/public --project-name=love-home --branch=main
