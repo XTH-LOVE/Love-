@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { CalendarHeart, Camera, Check, Copy, Heart, Link2, LoaderCircle, LogOut, ShieldCheck, Unlink, X } from '@lucide/vue'
+import { CalendarHeart, Camera, Check, Copy, Heart, KeyRound, Link2, LoaderCircle, LogOut, ShieldCheck, Unlink, X } from '@lucide/vue'
 const emit = defineEmits<{ close: []; logout: []; unlinked: []; relationshipUpdated: [] }>()
-const { profile } = useCoupleAuth()
+const { profile, updatePassword } = useCoupleAuth()
 const { relationshipStart, loadAnniversaries } = useAnniversaries()
 const { members, accountLoading, loadMembers, updateName, updateRelationshipStart, uploadAvatar, regenerateInvitation, unlinkCouple } = useAccountManagement()
 const name = ref(profile.value?.displayName || '')
 const startDate = ref(relationshipStart.value)
-const busy = ref(false); const code = ref(''); const copied = ref(false); const error = ref(''); const success = ref(''); const confirmUnlink = ref(false)
+const busy = ref(false); const code = ref(''); const copied = ref(false); const error = ref(''); const success = ref(''); const confirmUnlink = ref(false); const passwordOpen = ref(false); const newPassword = ref(''); const confirmPassword = ref('')
+const loginIdentity = computed(() => { const email = profile.value?.email || ''; const match = email.match(/^account\.([^@]+)@users\.love-home\.invalid$/); return match ? `账号登录 · ${match[1]}` : email ? `邮箱登录 · ${email}` : '当前登录会话' })
 onMounted(async () => { await Promise.all([loadMembers(), loadAnniversaries()]); startDate.value = relationshipStart.value })
 async function run(action: () => Promise<void>) { busy.value = true; error.value = ''; success.value = ''; try { await action() } catch (e: any) { error.value = e.message } finally { busy.value = false } }
 async function saveName() { if (name.value.trim()) await run(() => updateName(name.value.trim())) }
@@ -15,6 +16,7 @@ async function chooseAvatar(event: Event) { const file = (event.target as HTMLIn
 async function makeCode() { await run(async () => { code.value = await regenerateInvitation() }) }
 async function copy() { await navigator.clipboard.writeText(code.value); copied.value = true; setTimeout(() => copied.value = false, 1200) }
 async function unlink() { await run(async () => { await unlinkCouple(); emit('unlinked') }) }
+async function savePassword() { if (newPassword.value.length < 8) { error.value = '新密码至少需要 8 位'; return }; if (newPassword.value !== confirmPassword.value) { error.value = '两次输入的新密码不一致'; return }; await run(async () => { await updatePassword(newPassword.value); newPassword.value = ''; confirmPassword.value = ''; passwordOpen.value = false; success.value = '密码已更新，下次登录请使用新密码' }) }
 </script>
 
 <template>
@@ -23,6 +25,7 @@ async function unlink() { await run(async () => { await unlinkCouple(); emit('un
     <div v-if="accountLoading" class="loading"><LoaderCircle class="spin" :size="22" /> 正在读取成员</div>
     <div v-else class="members"><article v-for="member in members" :key="member.id"><div class="member-avatar"><img v-if="member.avatarUrl" :src="member.avatarUrl" alt="成员头像"><span v-else>{{ member.displayName.slice(0, 1) }}</span><label v-if="member.id === profile?.id" title="更换头像"><Camera :size="14" /><input type="file" accept="image/jpeg,image/png,image/webp" hidden @change="chooseAvatar"></label></div><div><strong>{{ member.displayName }}</strong><small>{{ member.id === profile?.id ? '这是你' : '你的伴侣' }}</small></div><ShieldCheck v-if="member.id === profile?.id" :size="17" /></article></div>
     <section class="setting-section"><h3>我的称呼</h3><div class="name-row"><input v-model="name" maxlength="40"><button type="button" :disabled="busy" @click="saveName"><Check :size="16" />保存</button></div></section>
+    <section class="setting-section"><h3>账户安全</h3><div class="account-identity"><ShieldCheck :size="19" /><div><strong>{{ loginIdentity }}</strong><span>密码不会在系统中显示，只能修改或重置。</span></div></div><button class="outline-action" type="button" @click="passwordOpen = !passwordOpen"><KeyRound :size="17" />{{ passwordOpen ? '收起密码修改' : '修改登录密码' }}</button><div v-if="passwordOpen" class="password-form"><label>新密码<input v-model="newPassword" type="password" autocomplete="new-password" placeholder="至少 8 位"></label><label>确认新密码<input v-model="confirmPassword" type="password" autocomplete="new-password" placeholder="再次输入新密码"></label><button type="button" :disabled="busy" @click="savePassword"><LoaderCircle v-if="busy" class="spin" :size="16" /><Check v-else :size="16" />保存新密码</button></div></section>
     <section class="setting-section"><h3>在一起的日期</h3><p>修改后，双方首页和纪念日的实时计时会同步更新。</p><div class="date-row"><CalendarHeart :size="19" /><input v-model="startDate" type="date" :max="new Date().toISOString().slice(0, 10)"><button type="button" :disabled="busy" @click="saveStart"><Check :size="16" />更新</button></div></section>
     <section class="setting-section"><h3>邀请伴侣</h3><p>邀请码有效期为 7 天。重新生成不会影响已经绑定的成员。</p><button v-if="!code" class="outline-action" type="button" :disabled="busy" @click="makeCode"><Link2 :size="17" />生成新邀请码</button><button v-else class="invite-code" type="button" @click="copy"><strong>{{ code }}</strong><Copy :size="17" /><span>{{ copied ? '已复制' : '复制' }}</span></button></section>
     <p v-if="success" class="panel-success">{{ success }}</p><p v-if="error" class="panel-error">{{ error }}</p>
@@ -36,4 +39,7 @@ async function unlink() { await run(async () => { await unlinkCouple(); emit('un
 </style>
 <style scoped>
 @media(max-width:650px){.account-overlay{padding-top:env(safe-area-inset-top)}.account-panel{max-height:calc(100dvh - env(safe-area-inset-top));padding-top:19px}.account-panel h2{font-size:23px}.setting-section h3{font-size:12px}}
+</style>
+<style scoped>
+.account-identity{display:flex;align-items:center;gap:10px;margin-bottom:11px;padding:12px 13px;border:1px solid rgba(112,160,131,.2);border-radius:17px;background:#f5fbf7;color:#629174}.account-identity>div{min-width:0}.account-identity strong,.account-identity span{display:block}.account-identity strong{color:#416e51;font-size:11px;overflow-wrap:anywhere}.account-identity span{margin-top:3px;color:#82978a;font-size:9px}.password-form{display:grid;gap:9px;margin-top:11px;padding:13px;border-radius:17px;background:rgba(255,255,255,.75)}.password-form label{display:grid;gap:6px;color:#78667c;font-size:10px;font-weight:700}.password-form input{width:100%;padding:11px 12px;border:1px solid #e4dee7;border-radius:14px;outline:0;background:#fff;font:inherit}.password-form>button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;border:0;border-radius:15px;background:linear-gradient(135deg,#8b4db9,#d85f99);color:#fff;font-size:10px;font-weight:750}
 </style>
