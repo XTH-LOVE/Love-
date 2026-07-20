@@ -1,0 +1,6 @@
+Fox.glb is from KhronosGroup/glTF-Sample-Assets:
+https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox
+
+Model: Copyright 2014 Pixelmannen, CC0 1.0.
+Rigging and animation: Copyright 2014 tomkranis and Copyright 2017 @AsoboStudio/@scurest, CC BY 4.0.
+Attribution is required for the rigging and animation contributors in distributed builds.

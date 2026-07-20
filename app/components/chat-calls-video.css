@@ -1,0 +1,60 @@
+.chat-panel .video-call-button {
+  color: #b44e93;
+  background: linear-gradient(135deg, rgba(238,216,250,.75), rgba(255,222,238,.75));
+}
+.chat-panel .video-stage {
+  position: absolute;
+  z-index: 8;
+  inset: 76px 16px auto;
+  height: min(52vh, 360px);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 22px;
+  background: #2b1d34;
+  box-shadow: 0 20px 45px rgba(70,35,83,.24);
+}
+.chat-panel .remote-video { display: block; width: 100%; height: 100%; object-fit: cover; background: #3b2945; }
+.chat-panel .local-video {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 104px;
+  height: 140px;
+  border: 2px solid rgba(255,255,255,.9);
+  border-radius: 14px;
+  object-fit: cover;
+  background: #4e3455;
+  box-shadow: 0 8px 20px rgba(30,12,35,.28);
+  transform: scaleX(-1);
+}
+.chat-panel .live-location-card {
+  position: absolute;
+  z-index: 9;
+  top: 82px;
+  right: 18px;
+  left: 18px;
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.86);
+  border-radius: 18px;
+  background: rgba(255,249,255,.94);
+  box-shadow: 0 15px 34px rgba(91,47,105,.17);
+  backdrop-filter: blur(16px);
+}
+.chat-panel .live-location-card > div { display: flex; flex-direction: column; justify-content: center; gap: 4px; color: #69466f; }
+.chat-panel .live-location-card > .location-map { display: block; padding: 0; }
+.chat-panel .live-location-card strong { font-size: 11px; }
+.chat-panel .live-location-card small { color: #a080a5; font-size: 9px; }
+.chat-panel .live-location-card > div > svg { color: #b356a0; }
+.chat-panel .location-card .location-map { width: min(292px, 65vw); margin-bottom: 8px; }
+.chat-panel .live-location-card .location-map { width: 140px; height: 96px; }
+.chat-panel .live-location-card a { grid-column: 1 / -1; color: #99508f; font-size: 10px; font-weight: 800; text-decoration: none; }
+@media (max-width: 700px) {
+  .chat-panel .video-stage { inset: 68px 10px auto; height: min(55dvh, 330px); border-radius: 18px; }
+  .chat-panel .local-video { width: 82px; height: 110px; right: 9px; bottom: 9px; }
+  .chat-panel .live-location-card { top: 76px; right: 10px; left: 10px; grid-template-columns: 1fr 112px; }
+  .chat-panel .live-location-card .location-map { width: 112px; height: 82px; }
+  .chat-panel .location-card .location-map { width: min(270px, 68vw); height: 162px; }
+}

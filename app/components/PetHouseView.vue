@@ -1,0 +1,93 @@
+<script setup lang="ts">
+import { Check, Flame, Gamepad2, Hand, Heart, LoaderCircle, PawPrint, Save, Sparkles, Utensils } from '@lucide/vue'
+
+const { pet, streak, loading, busy, error, moodLabel, hungerLabel, levelProgress, load, updateStyle, interact } = useCouplePet()
+const selectedSkin = ref('lavender')
+const selectedAccessories = ref<string[]>([])
+const selectedSpecies = ref('bunny')
+const petAction = ref('')
+const savedNotice = ref(false)
+const skins = [
+  { id: 'lavender', label: '薰衣草', color: '#d8b5f2' },
+  { id: 'pink', label: '樱花粉', color: '#f4b8cf' },
+  { id: 'mint', label: '薄荷绿', color: '#b7e4d7' },
+  { id: 'night', label: '星夜蓝', color: '#6f79bd' },
+]
+const accessories = [
+  { id: 'crown', label: '小皇冠', art: '👑' },
+  { id: 'scarf', label: '围巾', art: '🧣' },
+  { id: 'bow', label: '蝴蝶结', art: '🎀' },
+  { id: 'flower', label: '小花花', art: '🌼' },
+]
+const speciesOptions = [
+  { id: 'bunny', label: '月兔', art: '🐰' },
+  { id: 'cat', label: '云猫', art: '🐱' },
+  { id: 'puppy', label: '奶油狗', art: '🐶' },
+  { id: 'bear', label: '蜜糖熊', art: '🐻' },
+  { id: 'fox', label: '晚霞狐', art: '🦊' },
+  { id: 'panda', label: '糯米熊猫', art: '🐼' },
+  { id: 'penguin', label: '星河企鹅', art: '🐧' },
+  { id: 'hamster', label: '奶酪仓鼠', art: '🐹' },
+]
+const growthStage = computed(() => (pet.value?.level || 1) >= 10 ? '成熟守护形态' : (pet.value?.level || 1) >= 5 ? '成长少年形态' : '初生幼崽形态')
+const levelCopy = computed(() => (pet.value?.level || 1) >= 10 ? '已经是你们爱情里的小守护者' : '再积累 ' + (50 - ((pet.value?.experience || 0) % 50)) + ' 点经验，就会长大一点')
+
+function toggleAccessory(id: string) { selectedAccessories.value = selectedAccessories.value.includes(id) ? selectedAccessories.value.filter(item => item !== id) : selectedAccessories.value.length < 3 ? [...selectedAccessories.value, id] : selectedAccessories.value }
+async function saveStyle() { savedNotice.value = false; await updateStyle(selectedSkin.value, selectedAccessories.value, selectedSpecies.value); if (!error.value) { savedNotice.value = true; window.setTimeout(() => { savedNotice.value = false }, 2400) } }
+async function performAction(action: 'feed' | 'play' | 'pet' | 'sleep' | 'wave' | 'dance') { petAction.value = action + '-' + Date.now(); if (action === 'feed' || action === 'play' || action === 'pet') await interact(action) }
+watch(pet, value => { if (!value) return; selectedSkin.value = value.skin; selectedAccessories.value = [...value.accessories]; selectedSpecies.value = value.species }, { immediate: true })
+onMounted(load)
+</script>
+
+<template>
+  <section class="pet-house-view">
+    <header class="pet-house-header"><div><p class="eyebrow">OUR LITTLE HOME</p><h1>宠物小屋</h1><p>你们一起照顾的小生命，也在记录你们的每一天。</p></div><div class="house-streak"><Flame :size="18" fill="currentColor"/><strong>{{ streak?.currentDays || 0 }}</strong><span>天火花</span></div></header>
+    <div v-if="loading" class="pet-house-loading"><LoaderCircle class="spin" :size="22"/>正在打开小屋</div>
+    <template v-else>
+      <section class="pet-scene" :class="`scene-${pet?.skin || 'lavender'}`">
+        <div class="scene-sparkles" aria-hidden="true">✦　♡　✧　♡　✦</div>
+        <div class="house-window" aria-hidden="true"><span class="moon">☾</span><i>✦　·　✧</i></div>
+        <div class="house-furniture" aria-hidden="true"><div class="plant"><b>♡</b><i/><i/></div><div class="sofa"><span/><span/><span/></div><div class="rug"/></div>
+        <div class="pet-house-copy"><span class="house-label"><PawPrint :size="14"/> {{ pet?.name || '小爱' }} 的成长记录</span><h2>{{ moodLabel }}</h2><p>{{ levelCopy }}</p></div>
+        <div class="pet-hero"><Pet2D :species="selectedSpecies" :skin="selectedSkin" :level="pet?.level" :action="petAction" :accessories="selectedAccessories" :mood="pet?.mood"/><span class="pet-heart"><Heart :size="18" fill="currentColor"/></span><span class="pet-stage">{{ growthStage }}</span><div class="pet-actions"><button type="button" :disabled="busy" title="喂食" @click="performAction('feed')"><Utensils :size="14"/><span>喂食</span></button><button type="button" :disabled="busy" title="陪玩" @click="performAction('play')"><Gamepad2 :size="14"/><span>陪玩</span></button><button type="button" :disabled="busy" title="摸摸" @click="performAction('pet')"><Hand :size="14"/><span>摸摸</span></button></div></div>
+        <div class="scene-action-dock"><button type="button" title="睡觉" @click="performAction('sleep')">☾<span>睡觉</span></button><button type="button" title="挥手" @click="performAction('wave')">♡<span>挥手</span></button><button type="button" title="跳舞" @click="performAction('dance')">✦<span>跳舞</span></button></div>
+        <div class="scene-floor"/>
+      </section>
+      <section class="pet-stats"><article><span>成长等级</span><strong>Lv.{{ pet?.level || 1 }}</strong><div class="stat-bar"><i :style="{width:`${levelProgress}%`}"/></div></article><article><span>心情</span><strong>{{ pet?.mood || 0 }}%</strong><div class="stat-bar pink"><i :style="{width:`${pet?.mood || 0}%`}"/></div></article><article><span>饱食度</span><strong>{{ pet?.hunger || 0 }}%</strong><div class="stat-bar mint"><i :style="{width:`${pet?.hunger || 0}%`}"/></div></article></section>
+      <section class="style-panel"><header><div><p class="eyebrow">MAKE IT YOURS</p><h3>给小爱换一身心情</h3></div><button class="save-style" type="button" :disabled="busy" @click="saveStyle"><LoaderCircle v-if="busy" class="spin" :size="15"/><Save v-else :size="15"/>保存装扮</button></header><div class="style-section"><span>选择共同宠物</span><div class="species-options"><button v-for="item in speciesOptions" :key="item.id" type="button" :aria-pressed="selectedSpecies===item.id" :class="{selected:selectedSpecies===item.id}" @click="selectedSpecies=item.id"><b>{{ item.art }}</b><small>{{ item.label }}</small><Check v-if="selectedSpecies===item.id" :size="13"/></button></div></div><div class="style-section"><span>背景皮肤</span><div class="skin-options"><button v-for="skin in skins" :key="skin.id" type="button" :aria-pressed="selectedSkin===skin.id" :class="{selected:selectedSkin===skin.id}" @click="selectedSkin=skin.id"><i :style="{background:skin.color}"/><small>{{ skin.label }}</small><Check v-if="selectedSkin===skin.id" :size="13"/></button></div></div><div class="style-section"><span>配饰（最多 3 件）</span><div class="accessory-options"><button v-for="item in accessories" :key="item.id" type="button" :aria-pressed="selectedAccessories.includes(item.id)" :class="{selected:selectedAccessories.includes(item.id)}" @click="toggleAccessory(item.id)"><b>{{ item.art }}</b><small>{{ item.label }}</small><Check v-if="selectedAccessories.includes(item.id)" :size="13"/></button></div></div><p v-if="savedNotice" class="style-saved"><Check :size="14"/> 已保存到你们的小屋</p><p v-if="error" class="style-error">{{ error }}</p></section>
+    </template>
+  </section>
+</template>
+
+<style scoped>
+.pet-house-view{width:min(100%,1020px);margin:0 auto}.pet-house-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:14px 0 24px}.pet-house-header h1{margin:4px 0 6px;color:#4c2e56;font-size:32px;font-weight:800}.pet-house-header>div:first-child>p:last-child{margin:0;color:#918297;font-size:12px}.house-streak{display:flex;align-items:center;gap:6px;padding:12px 16px;border:1px solid rgba(255,255,255,.86);border-radius:18px;background:linear-gradient(135deg,#f7d9e7,#eadafa);color:#9b4f8e;box-shadow:0 12px 28px rgba(112,64,129,.1)}.house-streak strong{font-size:24px}.house-streak span{font-size:10px}.pet-scene{position:relative;min-height:410px;overflow:hidden;border:1px solid rgba(255,255,255,.82);border-radius:32px;background:linear-gradient(145deg,#d8b9ef,#f6cede 54%,#c4d9f3);box-shadow:0 27px 65px rgba(103,61,128,.16)}.scene-pink{background:linear-gradient(145deg,#f7bfd3,#f5d4e1 54%,#d8c8f0)}.scene-mint{background:linear-gradient(145deg,#b9e6d9,#e1f0df 54%,#c8d8ee)}.scene-night{background:linear-gradient(145deg,#6672b8,#8b74bb 54%,#343b75);color:#fff}.scene-sparkles{position:absolute;top:28px;right:38px;color:rgba(255,255,255,.72);font-size:23px;letter-spacing:4px}.pet-house-copy{position:absolute;z-index:2;top:42px;left:48px}.house-label{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid rgba(255,255,255,.6);border-radius:14px;background:rgba(255,255,255,.32);color:#754b82;font-size:10px;font-weight:800}.scene-night .house-label,.scene-night .pet-house-copy h2{color:#fff}.pet-house-copy h2{margin:18px 0 7px;color:#51335e;font-size:38px}.pet-house-copy p{margin:0;max-width:270px;color:rgba(83,53,96,.7);font-size:12px;line-height:1.7}.scene-night .pet-house-copy p{color:rgba(255,255,255,.76)}.pet-hero{position:absolute;z-index:3;right:22%;bottom:74px;display:grid;place-items:center;width:240px;height:240px}.pet-glow{position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.42);filter:blur(3px);animation:glow-pulse 3s ease-in-out infinite alternate}.pet-big-avatar{position:relative;z-index:2;font-size:144px;line-height:1;filter:drop-shadow(0 18px 18px rgba(89,49,106,.22));animation:pet-bounce 2.8s ease-in-out infinite}.pet-accessories{position:absolute;z-index:4;top:24px;right:18px;font-size:34px;letter-spacing:-10px;transform:rotate(7deg)}.pet-heart{position:absolute;z-index:4;top:15px;left:23px;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.58);color:#df719e;animation:heart-pop 2s ease-in-out infinite}.scene-floor{position:absolute;right:-5%;bottom:-44px;left:-5%;height:125px;border-radius:50% 50% 0 0;background:rgba(255,255,255,.34);box-shadow:0 -14px 40px rgba(255,255,255,.16)}.pet-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:14px}.pet-stats article{padding:17px 18px;border:1px solid rgba(255,255,255,.84);border-radius:19px;background:rgba(255,251,255,.86);box-shadow:0 12px 30px rgba(93,55,107,.07)}.pet-stats span,.pet-stats strong{display:block}.pet-stats span{color:#9a879e;font-size:10px}.pet-stats strong{margin-top:4px;color:#644269;font-size:20px}.stat-bar{height:6px;margin-top:12px;overflow:hidden;border-radius:6px;background:#eadfed}.stat-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a06bc1,#d57caa)}.stat-bar.pink i{background:linear-gradient(90deg,#e28cab,#efb06b)}.stat-bar.mint i{background:linear-gradient(90deg,#69bca7,#92d4ba)}.style-panel{margin-top:14px;padding:24px;border:1px solid rgba(255,255,255,.86);border-radius:25px;background:rgba(255,251,255,.92);box-shadow:0 15px 38px rgba(93,55,107,.07)}.style-panel>header{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.style-panel h3{margin:4px 0 0;color:#52355b;font-size:19px}.save-style{display:flex;align-items:center;gap:6px;min-height:38px;padding:0 13px;border:0;border-radius:14px;background:linear-gradient(135deg,#9659c4,#de70a7);color:#fff;font-size:10px;font-weight:800;cursor:pointer}.save-style:disabled{opacity:.55}.style-section{margin-top:23px}.style-section>span{display:block;margin-bottom:10px;color:#765d7b;font-size:11px;font-weight:800}.skin-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.skin-options button,.accessory-options button{position:relative;display:flex;align-items:center;gap:7px;min-height:45px;padding:7px 10px;border:1px solid #eadfed;border-radius:14px;background:#fff;color:#765d7b;cursor:pointer}.skin-options button.selected,.accessory-options button.selected{border-color:#b77ac4;background:#f7eafa;box-shadow:0 0 0 2px rgba(181,118,197,.14)}.skin-options i{width:24px;height:24px;border-radius:50%;box-shadow:inset 0 1px rgba(255,255,255,.8)}.skin-options small,.accessory-options small{font-size:10px}.skin-options svg{margin-left:auto;color:#9254a1}.accessory-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.accessory-options button{flex-direction:column;justify-content:center;gap:2px}.accessory-options b{font-size:24px;line-height:1}.style-error{margin:13px 0 0;color:#bb5578;font-size:10px}.pet-house-loading{display:flex;min-height:360px;align-items:center;justify-content:center;gap:8px;color:#927e96;font-size:12px}.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pet-bounce{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-13px) rotate(2deg)}}@keyframes glow-pulse{to{transform:scale(1.08);opacity:.72}}@keyframes heart-pop{50%{transform:scale(1.13)}}@media(max-width:700px){.pet-house-header{align-items:flex-start;padding-top:6px}.pet-house-header h1{font-size:25px}.pet-house-header>div:first-child>p:last-child{font-size:10px;line-height:1.6}.house-streak{padding:9px 11px}.house-streak strong{font-size:20px}.pet-scene{min-height:460px;border-radius:25px}.pet-house-copy{top:27px;left:24px}.pet-house-copy h2{margin-top:14px;font-size:29px}.pet-house-copy p{max-width:210px;font-size:10px}.pet-hero{right:50%;bottom:71px;width:210px;height:210px;transform:translateX(50%)}.pet-big-avatar{font-size:124px}.pet-stats{gap:7px}.pet-stats article{padding:13px 11px;border-radius:15px}.pet-stats strong{font-size:17px}.style-panel{padding:18px;border-radius:20px}.style-panel>header{align-items:flex-end}.style-panel h3{font-size:16px}.skin-options,.accessory-options{grid-template-columns:repeat(2,1fr)}.accessory-options button{min-height:58px}}
+</style>
+<style scoped>
+.house-window{position:absolute;z-index:1;top:30px;right:44px;width:150px;height:120px;border:8px solid rgba(255,255,255,.38);border-radius:24px;background:linear-gradient(145deg,rgba(61,45,107,.28),rgba(148,101,184,.22));box-shadow:inset 0 0 0 2px rgba(255,255,255,.18),0 15px 30px rgba(83,42,110,.1)}.house-window:before,.house-window:after{content:'';position:absolute;background:rgba(255,255,255,.24)}.house-window:before{top:50%;right:0;left:0;height:2px}.house-window:after{top:0;bottom:0;left:50%;width:2px}.house-window .moon{position:absolute;top:16px;right:19px;color:#fff5cc;font-size:34px;line-height:1;text-shadow:0 0 18px rgba(255,229,160,.8)}.house-window i{position:absolute;bottom:18px;left:15px;color:rgba(255,255,255,.75);font-size:12px;font-style:normal;letter-spacing:5px}.house-furniture{position:absolute;z-index:2;right:5%;bottom:28px;left:5%;height:100px;pointer-events:none}.plant{position:absolute;bottom:28px;left:5%;width:50px;height:72px}.plant:after{content:'';position:absolute;right:5px;bottom:0;left:5px;height:25px;border-radius:8px 8px 14px 14px;background:linear-gradient(135deg,#d99bae,#bb718e)}.plant b,.plant i{position:absolute;z-index:1;color:#7fc29e;font-style:normal}.plant b{left:15px;bottom:23px;font-size:28px;transform:rotate(-18deg)}.plant i{bottom:28px;width:17px;height:28px;border-radius:100% 0 100% 0;background:#7eb99a}.plant i:first-of-type{left:1px;transform:rotate(-28deg)}.plant i:last-of-type{right:0;transform:scaleX(-1) rotate(-28deg)}.sofa{position:absolute;right:8%;bottom:22px;width:145px;height:58px;border-radius:22px 22px 13px 13px;background:linear-gradient(145deg,#b980c9,#815595);box-shadow:inset 0 8px rgba(255,255,255,.16),0 13px 18px rgba(80,42,99,.16)}.sofa:before{content:'';position:absolute;top:-24px;right:7px;left:7px;height:38px;border-radius:18px 18px 9px 9px;background:linear-gradient(145deg,#c993d3,#9664ad)}.sofa span{position:absolute;top:9px;width:33px;height:25px;border-radius:10px;background:rgba(255,236,247,.52)}.sofa span:nth-child(1){left:17px}.sofa span:nth-child(2){left:56px}.sofa span:nth-child(3){right:17px}.rug{position:absolute;right:28%;bottom:0;width:260px;height:32px;border-radius:50%;background:rgba(255,225,240,.4);box-shadow:0 0 0 2px rgba(255,255,255,.14)}.scene-action-dock{position:absolute;z-index:8;right:28px;bottom:21px;display:flex;gap:6px}.scene-action-dock button{display:flex;align-items:center;gap:4px;min-width:49px;padding:7px 9px;border:1px solid rgba(255,255,255,.55);border-radius:13px;background:rgba(255,255,255,.26);color:#704b7b;font-size:15px;box-shadow:0 8px 16px rgba(85,43,103,.1);backdrop-filter:blur(10px);cursor:pointer}.scene-action-dock span{font-size:9px;font-weight:800}.scene-night .scene-action-dock button{color:#fff;background:rgba(45,35,91,.28)}
+@media(max-width:700px){.house-window{top:20px;right:19px;width:96px;height:82px;border-width:5px;border-radius:16px}.house-window .moon{top:8px;right:11px;font-size:23px}.house-window i{bottom:10px;left:8px;font-size:8px;letter-spacing:2px}.house-furniture{bottom:30px}.plant{left:2%;transform:scale(.72);transform-origin:bottom left}.sofa{right:3%;transform:scale(.72);transform-origin:bottom right}.rug{right:18%;width:170px}.scene-action-dock{right:12px;bottom:21px}.scene-action-dock button{min-width:38px;padding:6px 7px}}
+</style>
+<style scoped>
+.accessory-options button svg{position:absolute;top:7px;right:8px;color:#9254a1}
+.style-saved{display:flex;align-items:center;gap:5px;margin:13px 0 0;color:#4d9d83;font-size:10px;font-weight:800}
+</style>
+<style scoped>
+.pet-hero{right:10%;bottom:32px;width:360px;height:360px}
+.pet-hero .pet-heart{top:24px;left:22px}
+.pet-stage{position:absolute;right:20px;bottom:56px;z-index:6;padding:6px 9px;border:1px solid rgba(255,255,255,.68);border-radius:12px;background:rgba(255,255,255,.35);color:#704b7b;font-size:9px;font-weight:800;backdrop-filter:blur(10px)}
+.pet-actions{position:absolute;right:16px;bottom:4px;left:16px;z-index:7;display:flex;gap:6px}
+.pet-actions button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:29px;flex:1;border:1px solid rgba(255,255,255,.7);border-radius:11px;background:rgba(255,255,255,.55);color:#704b7b;font-size:9px;font-weight:800;box-shadow:0 8px 18px rgba(91,48,106,.12);backdrop-filter:blur(12px);cursor:pointer}
+.pet-actions button:hover{background:rgba(255,255,255,.82);transform:translateY(-2px)}
+.pet-actions button:disabled{opacity:.5;cursor:default;transform:none}
+.species-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.species-options button{position:relative;display:flex;align-items:center;gap:7px;min-height:52px;padding:7px 10px;border:1px solid #eadfed;border-radius:14px;background:#fff;color:#765d7b;cursor:pointer}
+.species-options button.selected{border-color:#b77ac4;background:#f7eafa;box-shadow:0 0 0 2px rgba(181,118,197,.14)}
+.species-options b{font-size:24px;line-height:1}.species-options small{font-size:10px}.species-options svg{margin-left:auto;color:#9254a1}
+@media(max-width:700px){
+  .pet-house-view{padding-bottom:120px}
+  .pet-hero{right:50%;bottom:48px;width:285px;height:300px;transform:translateX(50%)}
+  .pet-stage{right:11px;bottom:54px;font-size:8px}
+  .pet-actions{right:7px;bottom:2px;left:7px}
+  .pet-actions button{min-height:27px;font-size:8px}
+  .species-options{grid-template-columns:repeat(2,1fr)}
+}
+</style>

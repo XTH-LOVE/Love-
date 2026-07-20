@@ -1,0 +1,11 @@
+{
+  "appId": "com.xiantinghua.couplespace",
+  "appName": "Love小家",
+  "webDir": ".output/public",
+  "backgroundColor": "#f7edf9",
+  "android": { "backgroundColor": "#f7edf9", "allowMixedContent": false },
+  "plugins": {
+    "StatusBar": { "style": "LIGHT", "backgroundColor": "#f7edf9", "overlaysWebView": false },
+    "SplashScreen": { "launchShowDuration": 2200, "launchAutoHide": true, "backgroundColor": "#f7edf9", "androidScaleType": "CENTER_INSIDE", "showSpinner": false }
+  }
+}

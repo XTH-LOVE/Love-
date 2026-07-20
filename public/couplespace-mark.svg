@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="100" y1="70" x2="920" y2="950" gradientUnits="userSpaceOnUse"><stop stop-color="#FDF8FF"/><stop offset=".46" stop-color="#E8D4F5"/><stop offset="1" stop-color="#F8CEDF"/></linearGradient>
+    <linearGradient id="violet" x1="245" y1="230" x2="700" y2="790" gradientUnits="userSpaceOnUse"><stop stop-color="#A86BC5"/><stop offset="1" stop-color="#784396"/></linearGradient>
+    <linearGradient id="rose" x1="770" y1="245" x2="350" y2="810" gradientUnits="userSpaceOnUse"><stop stop-color="#ED8CB5"/><stop offset="1" stop-color="#C65F91"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="36" stdDeviation="34" flood-color="#76507E" flood-opacity=".22"/></filter>
+  </defs>
+  <rect x="38" y="38" width="948" height="948" rx="232" fill="url(#bg)"/>
+  <rect x="70" y="70" width="884" height="884" rx="205" fill="none" stroke="#FFF" stroke-opacity=".78" stroke-width="10"/>
+  <g filter="url(#shadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M512 779C397 694 224 571 224 394c0-104 72-178 164-178 58 0 101 29 124 72 23-43 66-72 124-72 92 0 164 74 164 178 0 177-173 300-288 385Z" stroke="url(#violet)" stroke-width="106" opacity=".94"/>
+    <path d="M512 779C397 694 224 571 224 394c0-104 72-178 164-178 58 0 101 29 124 72 23-43 66-72 124-72 92 0 164 74 164 178 0 177-173 300-288 385Z" stroke="url(#rose)" stroke-width="54" opacity=".92"/>
+  </g>
+  <circle cx="512" cy="493" r="55" fill="#FFF" fill-opacity=".92"/>
+  <path d="m489 493 17 17 33-38" fill="none" stroke="#B467AD" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="806" cy="229" r="15" fill="#FFF"/><path d="M806 187v84M764 229h84" stroke="#FFF" stroke-width="11" stroke-linecap="round" opacity=".85"/>
+</svg>
